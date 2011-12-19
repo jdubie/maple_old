@@ -1,10 +1,5 @@
 fs = require 'fs'
 
-# if fs.readdirSync(process.env.PWD) != ['db','public', 'pwd.json', 'views']
-#   console.error 'no in correct directory'
-#   return
-
-
 pwd = fs.readFileSync "#{process.env.PWD}/pwd.json"
 pwd = JSON.parse pwd
 

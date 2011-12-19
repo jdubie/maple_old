@@ -34,57 +34,21 @@ db   = env.getDbConn()
 port = env.getListenPort()
 ###################################
 
+getViewData = (promise) ->
 
-getDepencies = (view,promise) ->
-
-  # ## read jade file to determine dependencies
-  # view = fs.readFileSync './views/' + view + '.jade'
-  # view = view.toString()
-
-  # #### TODO: Make this parsing correct (CFG??)
-  # deps = view.split constants.DYN_VAR
-  # deps.shift() # remove leading jade
-
-  # ## remove leading period
-  # deps = _.map deps, (dep) -> dep.split('.')[1]
-
-  # ## remove trailing text
-  # deps = _.map deps, (dep) -> dep.split('}')[0]
-  # deps = _.map deps, (dep) -> dep.split('\n')[0]
-  # deps = _.map deps, (dep) -> dep.split(' ')[0]
-
-  # ## remove duplicate dependencies
-  # deps = _.uniq deps
-
-  # just grab everything
-  db.list (err,body) ->
-    deps = _.map body.rows, (row) -> row.id
-    promise.emit 'deps', deps
-
-getViewData = (deps,promise) ->
-
-  async.map deps, db.get, (err,r) ->
-
-    # build up result
-    result = {}
-    for i in [0...deps.length]
-      result[deps[i]] = r[i].value
-
+  db.get 'master', (err,result) ->
     promise.emit 'viewData', result
 
 renderView = (view,res) ->
 
   promise = new (events.EventEmitter)
   promise.on 'start', ->
-    getDepencies view, promise
-
-  promise.on 'deps', (deps) ->
-    getViewData deps, promise
+    getViewData promise
 
   promise.on 'viewData', (viewData) ->
 
     # set up rendering options
-    viewData.edit = true
+    viewData.edit = true # TODO dynamically assign this
     renderOptions = {}
     renderOptions[constants.DYN_VAR] = viewData
     renderOptions['_DYN']            = viewData
@@ -102,8 +66,8 @@ app.get '/:id', (req,res) ->
   renderView req.params.id, res
 
 # handle saving
-app.post '/save/:id', (req,res) ->
-  id = req.body.id
+app.post '/save', (req,res) ->
+  id    = req.body.id
   value = req.body.value
 
   handleSave = (err) ->
@@ -112,17 +76,12 @@ app.post '/save/:id', (req,res) ->
     else
       res.end value
 
-  # save new one
-  db.get id, (err,doc) ->
-    if err? and err.error == 'not_found' and err.message == 'missing'
-      ## create document
-      console.error 'create new document'
-      db.insert {value}, id, handleSave
-    else
-      ## modify document
-      doc.value = value
-      db.insert doc, handleSave
+  db.get 'master', (err,doc) ->
+    ## modify document
+    doc[id] = value
+    ## resave document
+    db.insert doc, handleSave
 
 app.listen port
 
-console.log "Express server listening on port %d in %s mode", app.address().port, app.settings.env
+console.log "Maple server listening on port %d in %s mode", app.address().port, app.settings.env

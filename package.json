@@ -1,6 +1,7 @@
 {
     "name": "maple"
   , "version": "0.0.1"
+  , "username": "jdubie"
   , "bin": "./bin/maple"
   , "dependencies": {
       "express"    : "2.4.3"
