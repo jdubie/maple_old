@@ -1,17 +1,18 @@
-fs    = require 'fs'
+fs     = require 'fs'
 events = require 'events'
-_     = require 'underscore'
-async = require 'async'
-nano  = require('nano')('http://admin:admin@localhost:5984')
+_      = require 'underscore'
+async  = require 'async'
+env    = require './env/env'
 
-db = nano.use 'somacentral'
+db       = env.getDbConn()
+dbMaster = env.getDb()
 
 taskPromise = new (events.EventEmitter)
 
 task 'db:seed', (options) ->
 
-  nano.db.destroy 'somacentral', ->
-    nano.db.create 'somacentral', ->
+  dbMaster.db.destroy env.getDbName(), ->
+    dbMaster.db.create env.getDbName(), ->
 
       # create a document for every key
       # in seed.json

@@ -1,6 +1,11 @@
 fs = require 'fs'
 
-pwd = fs.readFileSync './env/pwd.json'
+# if fs.readdirSync(process.env.PWD) != ['db','public', 'pwd.json', 'views']
+#   console.error 'no in correct directory'
+#   return
+
+
+pwd = fs.readFileSync "#{process.env.PWD}/pwd.json"
 pwd = JSON.parse pwd
 
 env = 'development'
@@ -8,8 +13,14 @@ env = 'production' if process.env.NODE_ENV == 'production'
 
 pwd = pwd[env];
 
+## setup db
+nano = require('nano')("http://#{pwd.db_uname}:#{pwd.db_pwd}@#{pwd.db_host}:#{pwd.db_port}")
+
+
 module.exports =
 
-  getDbConn: ->
-    nano = require('nano')("http://#{pwd.db_uname}:#{pwd.db_pwd}@#{pwd.db_host}:#{pwd.db_port}")
-    db   = nano.use pwd.db_name
+  getDb: -> nano
+  getDbConn: -> nano.use pwd.db_name
+  getDbName: -> pwd.db_name
+
+  getListenPort: -> pwd.listen_port

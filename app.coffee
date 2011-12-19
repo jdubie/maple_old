@@ -30,7 +30,8 @@ app.configure 'development', ->
 app.configure 'production', ->
   app.use express.errorHandler()
 
-db = env.getDbConn()
+db   = env.getDbConn()
+port = env.getListenPort()
 ###################################
 
 
@@ -98,7 +99,6 @@ renderView = (view,res) ->
 app.get '/', (req,res) ->
   renderView 'index', res
 app.get '/:id', (req,res) ->
-  console.error req
   renderView req.params.id, res
 
 # handle saving
@@ -123,6 +123,6 @@ app.post '/save/:id', (req,res) ->
       doc.value = value
       db.insert doc, handleSave
 
-app.listen 3000
+app.listen port
 
 console.log "Express server listening on port %d in %s mode", app.address().port, app.settings.env
