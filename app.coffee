@@ -28,14 +28,7 @@ app.configure 'development', ->
 app.configure 'production', ->
   app.use express.errorHandler()
 
-
-# Routes
-
-app.get '*', (req,res) ->
-
-  ## determine view
-  view = req.params[0].split('/')[1]
-  view = 'index' if view == ''
+renderView = (view,res) ->
 
   ## read jade file to determine dependencies
   view = fs.readFileSync './views/' + view + '.jade'
@@ -66,6 +59,16 @@ app.get '*', (req,res) ->
     res.render 'index'
       layout : false
       '_BOOM': result
+
+# Routes
+
+app.get '/', (req,res) ->
+  renderView 'index', res
+app.get '/:id', (req,res) ->
+  renderView req.params.id, res
+
+
+
 
 app.listen 3000
 
