@@ -1,0 +1,12 @@
+{
+    "name": "cms"
+  , "version": "0.0.1"
+  , "private": true
+  , "dependencies": {
+      "express"    : "2.4.3"
+    , "jade"       : ">= 0.0.1"
+    , "nano"       : "1.0.0"
+    , "underscore" : "1.2.2"
+    , "async"      : "0.1.15"
+  }
+}
