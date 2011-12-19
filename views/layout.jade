@@ -1,0 +1,21 @@
+!!! 5
+html(lang="en")
+  head
+    title= 'MAPLE'
+    script(type='text/javascript', src='/javascripts/jquery.min.js')
+    script(type='text/javascript', src='/javascripts/jeditable.js')
+    script(type='text/javascript')
+      $(document).ready(function() {
+        $('*[type|=_DYN]').editable('/save/hi_server', {
+           indicator : 'Saving...',
+           tooltip   : 'Click to edit...'
+        });
+        $('*[type|=_DYN-area]').editable('http://www.example.com/save.php', {
+           type      : 'textarea',
+           cancel    : 'Cancel',
+           submit    : 'OK',
+           indicator : '<img src="img/indicator.gif">',
+           tooltip   : 'Click to edit...'
+        });
+      });
+  body!= body
