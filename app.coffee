@@ -20,22 +20,17 @@ app.configure ->
 
 ##################################
 ## env configuration
-env = fs.readFileSync './env/env.json'
-env = JSON.parse env
+env = require './env/env'
 
 app.configure 'development', ->
   app.use express.errorHandler
     dumpExceptions: true
     showStack: true
-  env = env.development
 
 app.configure 'production', ->
   app.use express.errorHandler()
-  env = env.production
 
-nano = require('nano')('http://admin:admin@localhost:5984')
-db   = nano.use "#{env.db_name}"
-# db = nano.use 'somacentral'
+db = env.getDbConn()
 ###################################
 
 
