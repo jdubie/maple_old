@@ -8,8 +8,8 @@ constants = require './env/constants'
 app = module.exports = express.createServer()
 
 
-# Configuration
-
+##################################
+## Express configuration
 app.configure ->
   app.set 'views', __dirname + '/views'
   app.set 'view engine', 'jade'
@@ -17,9 +17,11 @@ app.configure ->
   app.use express.methodOverride()
   app.use app.router
   app.use express.static __dirname + '/public'
+##################################
+
 
 ##################################
-## env configuration
+## Environment configuration
 env = require './env/env'
 
 app.configure 'development', ->
@@ -34,6 +36,9 @@ db   = env.getDbConn()
 port = env.getListenPort()
 ###################################
 
+
+###################################
+## Serving pages
 getViewData = (promise) ->
 
   db.get 'master', (err,result) ->
@@ -48,10 +53,9 @@ renderView = (view,res) ->
   promise.on 'viewData', (viewData) ->
 
     # set up rendering options
-    viewData.edit = true # TODO dynamically assign this
-    renderOptions = {}
-    renderOptions[constants.DYN_VAR] = viewData
-    renderOptions['_DYN']            = viewData
+    viewData.edit = true # TODO dynamically assign this based on session
+    renderOptions =
+      maple: viewData
 
     # actually render view
     res.render 'index', renderOptions
@@ -64,10 +68,14 @@ app.get '/', (req,res) ->
   renderView 'index', res
 app.get '/:id', (req,res) ->
   renderView req.params.id, res
+####################################
 
-# handle saving
+
+####################################
+## Handling Data modification
 app.post '/save', (req,res) ->
-  id    = req.body.id
+
+  key   = req.body.id
   value = req.body.value
 
   handleSave = (err) ->
@@ -77,10 +85,24 @@ app.post '/save', (req,res) ->
       res.end value
 
   db.get 'master', (err,doc) ->
+
+    set_nested = (key,new_value,ob) ->
+      # base case
+      if key.length == 1
+        ob[key] = new_value
+        return
+      # otherwise recurse
+      first = key.shift()
+      set_nested key,new_value,ob[first]
+
     ## modify document
-    doc[id] = value
+    key = key.split('.')
+    set_nested key,value,doc
+
     ## resave document
     db.insert doc, handleSave
+###################################
+
 
 app.listen port
 

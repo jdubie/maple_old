@@ -1,4 +1,9 @@
 {
- "foo": "bar",
- "killer": "whales"
+  "foo": "bar"
+  , "killer": "whales"
+  , "stooges": [
+    "larry"
+    ,"moe"
+    ,"curly"
+  ]
 }

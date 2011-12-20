@@ -1,7 +1,9 @@
 {
     "name": "maple"
+  , "description": "sweet site building"
   , "version": "0.0.1"
   , "username": "jdubie"
+  , "author": "Jack Dubie"
   , "bin": "./bin/maple"
   , "dependencies": {
       "express"    : "2.4.3"
@@ -11,4 +13,9 @@
     , "async"      : "0.1.15"
     , "commander"  : "0.5.0"
   }
+  , "licenses" :
+  [ { "type" : "MIT"
+    }
+  ]
+
 }

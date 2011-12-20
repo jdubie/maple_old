@@ -1,6 +1,5 @@
-h1(title='hi')!= _MAPLE.foo
-h2!= _MAPLE.killer
-div
-  != partial('partials/maple', {locals: {e: 'p', id: "killer", maple: _DYN}})
-div
-  != partial('partials/maple', {locals: {e: 'p', id: "not_exist", maple: _DYN}})
+div Rendering an editable element
+  != partial('partials/maple', {locals: {e: 'p', id: "killer", maple: maple}})
+
+ul List of elements
+  != partial('partials/maple_list', {locals: {e: 'li', id: "stooges", partial_name: 'partials/maple', maple: maple}})

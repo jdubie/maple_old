@@ -1,4 +1,5 @@
+include unwrap_value
 - if (maple.edit)
-  | <#{e} id="#{id}" type="_DYN">#{maple[id]}</#{e}>
+  | <#{e} id="#{id}" type="_DYN">#{unwrap_value(id,maple)}</#{e}>
 - else
-  | <#{e}>#{v}</#{e}>
+  | <#{e}>#{unwrap_value(id,maple)}</#{e}>

@@ -1,6 +1,13 @@
 fs = require 'fs'
 
-pwd = fs.readFileSync "#{process.env.PWD}/pwd.json"
+pwd = ''
+try
+  pwd = fs.readFileSync "#{process.env.PWD}/pwd.json"
+catch e
+  console.error "MAPLE ERROR:"
+  console.error "*** No pwd.json in current directory. Is this a maple project?"
+  process.exit -1
+
 pwd = JSON.parse pwd
 
 env = 'development'

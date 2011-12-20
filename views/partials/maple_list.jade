@@ -1,0 +1,3 @@
+- for (var e in maple[id])
+  - var new_id = id + '.' + e;
+  li!= partial (partial_name, {locals: {e: 'p', id: new_id, maple: maple}})

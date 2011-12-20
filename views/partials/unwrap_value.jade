@@ -1,0 +1,6 @@
+- function unwrap_value (key,ob) {
+-  var array = key.split('.');
+-  if (array.length == 1) return ob[key];
+-  var first = array.shift();
+-  return unwrap_value(array.join('.'),ob[first]);
+- }
