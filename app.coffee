@@ -110,17 +110,34 @@ app.post '/_signup', (req,res) ->
     if res[0]? and res[1]? and res[2]?
       ## create user
       # hash their password
+      pwd_sum = crypto.createHash 'sha256'
+      pwd_sum.update pwd
+      hashed_pwd_buf = new Buffer(pwd_sum.digest('base64'),'base64')
+
       # pick random salt same length as password
+      salt = Math.random().toString() # pseudo random seed to hash function
+      salt_sum = crypto.createHash 'sha256'
+      salt_sum.update salt
+      salt = salt_sum.digest 'base64'
+
       # store salt + password
+      salted_pwd_buf = new Buffer(salt.length)
+      salt_buf = new Buffer(salt,'base64')
+      for i in [0...salt_buf.length]
+        salted_pwd_buf = salt_buf[i] ^ hashed_pwd_buf[i]
+      salted_pwd = salted_pwd_buf.toString('base64')
+
+      db.insert {salted_pwd,salt}, login, (err,res) ->
+        res.redirect '/_login'
 
 ## Authentication Middleware ##
 authenticate_user = (login,password) ->
   promise = new (events.EventEmitter)
 
   # hash supplied password
-  shasum = crypto.createHash('sha1')
+  shasum = crypto.createHash('sha256')
   shasum.update password
-  hash_pwd = new Buffer(shasum.digest())
+  hash_pwd = new Buffer(shasum.digest('base64'),'base64')
 
   # look up user's hashed password
   # plus random salt entry
@@ -130,8 +147,8 @@ authenticate_user = (login,password) ->
       promise.emit 'failure', 'login name does not exist'
       return
     else
-      hash_plus_salt = new Buffer(doc.hash_plus_salt)
-      salt = new Buffer(doc.salt)
+      hash_plus_salt = new Buffer(doc.salted_pwd,'base64')
+      salt = new Buffer(doc.salt,'base64')
 
       # compare hash of supplied password XOR salt
       # to the db entry of password XOR salt
