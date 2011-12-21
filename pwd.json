@@ -1,11 +1,15 @@
 {
   "production": ""
   ,"development": {
-    "db_name": "maple_dev_db"
-    ,"db_port": 5984
-    ,"db_uname": "admin"
-    ,"db_pwd": "admin"
-    ,"db_host": "localhost"
-    ,"listen_port": 3000
+
+    "db_name"   : "maple_dev_db"
+    ,"db_port"  : 5984
+    ,"db_uname" : "admin"
+    ,"db_pwd"   : "admin"
+    ,"db_host"  : "localhost"
+
+    ,"listen_port" : 3000
+
+    ,"session_secret" : "dev_secret"
   }
 }

@@ -1,0 +1,16 @@
+h1 Sign up
+form(action='/_signup', method='POST')
+  p
+    label(for='admin') Admin's password:
+    input(type='text', name='admin', id='admin')
+  p
+    label(for='login') Desired login:
+    input(type='text', name='login', id='login')
+  p
+    label(for='password') Password:
+    input(type='password', name='password', id='password')
+  p
+    label(for='confirm') Confirm password:
+    input(type='password', name='confirm', id='confirm')
+  p
+    input(type='submit')

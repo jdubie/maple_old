@@ -26,3 +26,5 @@ module.exports =
   getDbName: -> pwd.db_name
 
   getListenPort: -> pwd.listen_port
+
+  getSessionSecret: -> pwd.session_secret
