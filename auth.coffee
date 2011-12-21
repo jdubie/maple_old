@@ -1,7 +1,33 @@
+events = require 'events'
+crypto = require 'crypto'
+async  = require 'async'
+_      = require 'underscore'
+
+MIN_LENGTH = 5
+
 module.exports =
 
-  create_user: (admin_pwd,login,pwd,confirm,db) ->
-    ## create user
+  signup_user: (admin_pwd,login,pwd,confirm,db) ->
+    promise = new (events.EventEmitter)
+
+    valid_promise = @valid_request admin_pwd,login,pwd,confirm,db, (res) ->
+    valid_promise
+      .on 'success', =>
+        create_promise = @create_user login,pwd,db
+        create_promise
+          .on 'success', ->
+            promise.emit 'success', login
+          .on 'error', (msg) ->
+            promise.emit msg
+      .on 'error', (msg) ->
+        promise.emit 'error', msg
+
+    return promise
+
+
+  create_user: (login,pwd,db,rev) ->
+    promise = new (events.EventEmitter)
+
     # hash their password
     pwd_sum = crypto.createHash 'sha256'
     pwd_sum.update pwd
@@ -17,41 +43,52 @@ module.exports =
     salted_pwd_buf = new Buffer(salt.length)
     salt_buf = new Buffer(salt,'base64')
     for i in [0...salt_buf.length]
-      salted_pwd_buf = salt_buf[i] ^ hashed_pwd_buf[i]
+      salted_pwd_buf[i] = salt_buf[i] ^ hashed_pwd_buf[i]
     salted_pwd = salted_pwd_buf.toString('base64')
+    # salted_pwd = 'pwd, im salty'
+    # console.error salted_pwd_buf
 
-    db.insert {salted_pwd,salt}, login, (err,res) ->
-      res.redirect '/_login'
+    doc = {salted_pwd,salt}
+    doc._rev = rev if rev?
 
-  signup_user: (admin_pwd,login,pwd,confirm,db) ->
+    db.insert doc, login, (err,res) ->
+      if err
+        promise.emit 'error', err
+      else
+        promise.emit 'success'
 
-    # make sure username doesn't already exist
-    unique = (cb) ->
-      db.get login, (err,body) ->
-        if err.error == 'not_found' and err.reason == 'missing'
-          cb 'unique'
-        else cb null
+    return promise
+
+
+  valid_request: (admin_pwd,login,pwd,confirm,db) ->
+
+    promise = new (events.EventEmitter)
+
+    # make sure password is long enough
+    if pwd.length < MIN_LENGTH
+      process.nextTick ->
+        promise.emit 'error', 'password is too short'
+      return promise
 
     # make sure passwords match
-    match = (cb) ->
-      if pwd != confirm
-        cb null
-      else cb 'match'
+    if pwd != confirm
+      process.nextTick ->
+        promise.emit 'error', 'passwords don\'t match'
+      return promise
 
-    # authenticate admin's password
-    authed = (cb) ->
-      promise = authenticate_user 'admin', admin_pwd
-      promise.on 'success', -> cb 'authed'
-      promise.on 'failure', -> cb null
+    # make sure username doesn't already exist
+    db.get login, (err,body) =>
+      if err? and err.error == 'not_found'
+        # make sure admin password is correct
+        auth_promise = @authenticate_user 'admin',admin_pwd,db
+        auth_promise.on 'success', ->
+          promise.emit 'success', login
+        auth_promise.on 'error', ->
+          promise.emit 'error', 'admin password invalid'
+      else
+        promise.emit 'error', 'login name already exists'
 
-    async.parallel [
-     unique
-     match
-     authed
-    ], (err,res) ->
-      if res[0]? and res[1]? and res[2]?
-
-        create_user
+    return promise
 
   authenticate_user: (login,password,db) ->
     promise = new (events.EventEmitter)
@@ -66,7 +103,7 @@ module.exports =
     # TODO CouchDB escape supplied username
     db.get login, (err,doc) ->
       if err
-        promise.emit 'failure', 'login name does not exist'
+        promise.emit 'error', 'login name does not exist'
         return
       else
         hash_plus_salt = new Buffer(doc.salted_pwd,'base64')
@@ -76,16 +113,18 @@ module.exports =
         # to the db entry of password XOR salt
         for i in [0...salt.length]
           if (salt[i] ^ hash_pwd[i]) != hash_plus_salt[i]
-            promise.emit 'failure', 'invalid password username combo'
+            promise.emit 'error', 'invalid password username combo'
             return # so don't emit success
 
-        promise.emit 'success'
+        promise.emit 'success', login
 
     return promise
 
-
+  ################################
+  ## Authentication middleware
   requiresAuth: (req,res,next) ->
     if req.session.user
       next()
     else
       res.end '*** login first at /_login'
+  ##################################

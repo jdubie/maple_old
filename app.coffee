@@ -1,6 +1,5 @@
 events      = require 'events'
 fs          = require 'fs'
-crypto      = require 'crypto'
 express     = require 'express'
 _           = require 'underscore'
 async       = require 'async'
@@ -63,7 +62,7 @@ app.post '/_login', (req,res) ->
 
   promise = auth.authenticate_user login, pwd, db
   promise
-    .on 'failure', (msg) ->
+    .on 'error', (msg) ->
       req.flash msg
       res.redirect '/_login'
     .on 'success', ->
@@ -83,7 +82,7 @@ app.post '/_signup', (req,res) ->
 
   validate_promise = auth.validate_signup admin_pwd,login,pwd,confirm,db
   validate_promise
-    .on 'failure', (msg) ->
+    .on 'error', (msg) ->
       req.flash msg
       res.redirect '/_signup'
     .on 'success', ->

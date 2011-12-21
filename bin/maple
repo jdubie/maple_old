@@ -8,15 +8,15 @@ server  = require('./server')
 program
   .version('0.0.1')
   .usage('[options]')
-  .option('new', 'New maple site')
+  .option('new [site name]', 'New maple site')
   .option('server', 'Run maple server')
-  .option('db:pwd','Set admin password for site')
+  .option('db:pwd [pwd]','Set admin password for site')
   .option('db:seed', 'Seed db from db/seed.json')
   .option('db:save', 'Save current db to db/save.json')
   .parse(process.argv);
 
 require('./db').seed() if program['db:seed']?
 require('./db').save() if program['db:save']?
-require('./db').pwd()  if program['db:pwd']?
-_new()          if program['new']?
+require('./db').pwd(process.argv[3])  if program['db:pwd']?
+_new(process.argv[3]) if program['new']?
 server()        if program['server']?

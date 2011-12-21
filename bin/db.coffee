@@ -37,3 +37,12 @@ module.exports =
     db.get 'master', (err,result) ->
       fs.writeFileSync './db/save.json', JSON.stringify result, undefined, '\s'
       console.error 'db:saved'
+
+  pwd: (pwd,cb) ->
+    db.get 'admin', (err,doc) ->
+      promise = auth.create_user 'admin',pwd,db,doc._rev
+      promise
+        .on 'success', ->
+          console.error 'db:pwd'
+          cb() if cb?
+        .on 'error', (msg) -> console.error msg
